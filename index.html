@@ -350,6 +350,7 @@ window.XL_CONFIG = {
      1) Tạo Form theo file HUONG-DAN-TAO-GOOGLE-FORM.md (mỗi câu hỏi = 1 cột trong Sheet)
      2) Dán formId (đoạn sau /d/e/ và trước /viewform) và mã entry.xxxxx của từng ô vào đây.
      Để formId rỗng = chế độ thử: kết quả chỉ lưu trên máy, hệ thống báo "chưa cấu hình". */
+  sheet: { endpoint: "https://script.google.com/macros/s/AKfycbxJX4GZ9njAKD_Lx2YikuvTmWCInw8kqeShPx6GtDcsKs4QIvF_3R3RW-D9J0D7YV-4/exec" }, // URL Web App của Apps Script gắn với Google Sheet (…/exec)
   form: {
     formId: "",
     entry: {
@@ -1602,6 +1603,17 @@ window.XL = window.XL || {};
     var rec = getRec(code); if (!rec) return;
     var F = CFG.form;
     if (rec.submit.sending) return;
+    var EP = (CFG.sheet && CFG.sheet.endpoint) || '';
+    if (EP) {
+      if (!navigator.onLine) { rec.submit = { status: 'offline' }; putRec(rec); done && done(); return; }
+      rec.submit = { status: 'sending', sending: true }; putRec(rec);
+      var mark = function () { var r2 = getRec(code); r2.submit = { status: 'sent', at: XL.fmtDate(new Date()) }; putRec(r2); done && done(); };
+      var fail = function () { var r3 = getRec(code); r3.submit = { status: 'offline' }; putRec(r3); done && done(); };
+      try {
+        fetch(EP, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload(rec)) }).then(mark, fail);
+      } catch (e) { fail(); }
+      return;
+    }
     if (!F.formId) { rec.submit = { status: 'noconfig' }; putRec(rec); done && done(); return; }
     if (!navigator.onLine) { rec.submit = { status: 'offline' }; putRec(rec); done && done(); return; }
     rec.submit = { status: 'sending', sending: true }; putRec(rec);

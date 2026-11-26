@@ -265,15 +265,13 @@ footer{background:#2a1a17;color:#eadfd4;margin-top:30px}
     <div class="gate-wrap">
       <div class="card lattice">
         <h1 class="zh-title">开始练习 <span style="font-family:var(--vi);font-size:16px;color:var(--muted);font-weight:500">· Thông tin học viên</span></h1>
-        <p class="sub">Không cần tài khoản hay mật khẩu. Điền đủ 4 thông tin bên dưới rồi bắt đầu làm bài.</p>
+        <p class="sub">Không cần tài khoản hay mật khẩu. Điền đủ 3 thông tin bên dưới rồi bắt đầu làm bài.</p>
         <div id="resumeBox" class="resume hidden"></div>
         <form id="gateForm" autocomplete="off" novalidate>
           <div class="field"><label for="fName">Họ và tên học viên <i>*</i></label>
             <input type="text" id="fName" placeholder="Ví dụ: Nguyễn Văn An"><div class="err" id="eName"></div></div>
           <div class="field"><label for="fClass">Tên lớp <i>*</i></label>
             <input type="text" id="fClass" placeholder="Ví dụ: HSK5-K12"><div class="err" id="eClass"></div></div>
-          <div class="field"><label for="fEmail">Email nhận điểm <i>*</i></label>
-            <input type="email" id="fEmail" inputmode="email" autocapitalize="off" placeholder="Ví dụ: ten.cua.ban@gmail.com"><div class="fnote">Điểm và đáp án sai sẽ được gửi về email này sau khi nộp bài. Hãy gõ chính xác.</div><div class="err" id="eEmail"></div></div>
           <div class="field"><label for="fTeacher">Giáo viên phụ trách <i>*</i></label>
             <select id="fTeacher"></select>
             <div class="inline-add hidden" id="addTeacherBox">
@@ -8226,7 +8224,7 @@ window.XL = window.XL || {};
 
   function submitBanner(rec) {
     var s = rec.submit || {}, h = '';
-    if (s.status === 'sent') h = '<div class="banner ok">✓ Đã gửi kết quả về bảng tính của trung tâm lúc ' + esc(s.at || '') + '. (Google không trả phản hồi xác nhận — nếu giáo viên chưa thấy dòng kết quả, bấm “Gửi lại”.)' + (rec.student.email ? '<br>📧 Bản sao điểm sẽ được Google gửi tới <b>' + esc(rec.student.email) + '</b> (nếu chưa thấy, kiểm tra thư rác/Spam).' : '') + '</div>';
+    if (s.status === 'sent') h = '<div class="banner ok">✓ Đã gửi kết quả về bảng tính của trung tâm lúc ' + esc(s.at || '') + '. (Google không trả phản hồi xác nhận — nếu giáo viên chưa thấy dòng kết quả, bấm “Gửi lại”.)' + '' + '</div>';
     else if (s.status === 'sending') h = '<div class="banner warn">Đang gửi kết quả…</div>';
     else if (s.status === 'offline') h = '<div class="banner err">Mất kết nối mạng — kết quả chưa được gửi. Bài làm vẫn được lưu trên máy. Hãy bật mạng rồi bấm “Gửi lại”.</div>';
     else h = '<div class="banner warn">Hệ thống chưa cấu hình Google Form nên kết quả <b>chưa được gửi</b> về bảng tính (chế độ thử). Kết quả vẫn được lưu trên máy này; có thể tải CSV hoặc sao chép gửi giáo viên.</div>';
@@ -8343,13 +8341,12 @@ window.XL = window.XL || {};
     };
     XL.$('#gateForm').onsubmit = function (e) {
       e.preventDefault();
-      var name = XL.cleanName(XL.$('#fName').value), cls = XL.cleanName(XL.$('#fClass').value), t = XL.$('#fTeacher').value, ok = true, email = (XL.$('#fEmail').value || '').trim().toLowerCase();
+      var name = XL.cleanName(XL.$('#fName').value), cls = XL.cleanName(XL.$('#fClass').value), t = XL.$('#fTeacher').value, ok = true;
       XL.$('#eName').textContent = name.length < 2 ? (ok = false, 'Vui lòng nhập họ và tên.') : '';
       XL.$('#eClass').textContent = !cls ? (ok = false, 'Vui lòng nhập tên lớp.') : '';
-      XL.$('#eEmail').textContent = !/^[a-z0-9._%+\-]+@[a-z0-9\-]+(\.[a-z0-9\-]+)*\.[a-z]{2,}$/.test(email) ? (ok = false, 'Vui lòng nhập email hợp lệ (ví dụ: ten@gmail.com).') : '';
       XL.$('#eTeacher').textContent = (!t || t === '__add__') ? (ok = false, 'Vui lòng chọn giáo viên phụ trách (hoặc thêm giáo viên mới).') : '';
       if (!ok) return;
-      XL.S = { student: { name: name, cls: cls, teacher: t, email: email }, lessonId: null, answers: {}, flags: {}, elapsed: 0, view: null };
+      XL.S = { student: { name: name, cls: cls, teacher: t }, lessonId: null, answers: {}, flags: {}, elapsed: 0, view: null };
       XL.saveSession(); XL.goList();
     };
   };

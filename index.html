@@ -96,6 +96,13 @@ textarea{min-height:140px;resize:vertical;font-family:var(--zh);line-height:1.8}
 .tab .zh{display:block;font-size:17px;font-weight:700}
 .tab small{display:block;color:var(--muted);font-size:12px}
 .tab.on{background:var(--red);border-color:var(--red);color:#fff}
+.vtabs{display:flex;gap:8px;margin:14px 0 16px;overflow-x:auto}
+.vtab{flex:1 0 auto;min-width:130px;padding:10px 14px;border:1.5px solid var(--line);background:#fff;border-radius:12px;cursor:pointer;text-align:center;font:inherit;color:var(--ink)}
+.vtab .zh{display:block;font-size:20px;font-weight:700}
+.vtab small{display:block;color:var(--muted);font-size:12px}
+.vtab.on{background:var(--red);border-color:var(--red);color:#fff}
+.vtab.on small{color:#fff;opacity:.9}
+.vempty{padding:28px;text-align:center;color:var(--muted);border:1.5px dashed var(--line);border-radius:12px;background:#faf8f2}
 .tab.on small{color:#fff;opacity:.9}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px}
 .chip{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:700;cursor:pointer;position:relative;font-size:14px}
@@ -422,6 +429,7 @@ window.XL_CONFIG = {
 };
 
 /* Danh mục 10 bài của 册1 (theo mục lục sách bài tập). Bài chưa có dữ liệu hiển thị là khung trống. */
+window.XL_VOLUMES = ["第一册", "第二册", "第三册", "第四册"];
 window.XL_INDEX = [
   { volume: "第一册", no: 1,  id: "hsk5-q1-l01", title: "握手的讲究" },
   { volume: "第一册", no: 2,  id: "hsk5-q1-l02", title: "养狗还是养猫？" },
@@ -8363,9 +8371,18 @@ window.XL = window.XL || {};
     XL.headUser();
     var hist = XL.store.get('xl-hsk5-history', []);
     var mine = hist.filter(function (r) { return r.student.name === XL.S.student.name && r.student.cls === XL.S.student.cls; });
-    var vol = '', h = '';
-    window.XL_INDEX.forEach(function (l) {
-      if (l.volume !== vol) { if (vol) h += '</div>'; vol = l.volume; h += '<div class="vol-title"><h2 class="zh-title">' + l.volume + '</h2></div><div class="lesson-grid">'; }
+    var VOLS = window.XL_VOLUMES || ['第一册'];
+    XL.curVol = XL.curVol || VOLS[0];
+    var h = '<div class="vtabs">';
+    VOLS.forEach(function (v, i) {
+      var n = window.XL_INDEX.filter(function (l) { return l.volume === v && XL.lesson(l.id); }).length;
+      h += '<button type="button" class="vtab' + (v === XL.curVol ? ' on' : '') + '" data-vol="' + v + '"><span class="zh">' + v + '</span><small>Quyển ' + (i + 1) + ' · ' + (n ? n + ' bài' : 'sắp có') + '</small></button>';
+    });
+    h += '</div>';
+    var list = window.XL_INDEX.filter(function (l) { return l.volume === XL.curVol; });
+    if (!list.length) h += '<div class="vempty">Quyển này đang được biên soạn. Vui lòng quay lại sau.</div>';
+    else h += '<div class="lesson-grid">';
+    list.forEach(function (l) {
       var has = !!XL.lesson(l.id), my = mine.filter(function (r) { return r.lessonId === l.id; }), last = my[my.length - 1];
       var prog = XL.S.lessonId === l.id;
       h += '<div class="lcard" style="' + (has ? '' : 'opacity:.6') + '"><div class="no">第' + l.no + '课 · BÀI ' + l.no + '</div><div class="t">' + esc(l.title) + '</div>';
@@ -8379,8 +8396,9 @@ window.XL = window.XL || {};
       }
       h += '</div>';
     });
-    h += '</div>';
+    if (list.length) h += '</div>';
     XL.$('#lessonGrid').innerHTML = h;
+    XL.$$('[data-vol]').forEach(function (b) { b.onclick = function () { XL.curVol = b.dataset.vol; XL.goList(); }; });
     XL.$$('[data-open]').forEach(function (b) { b.onclick = function () { XL.openExercise(b.dataset.open); }; });
     XL.$$('[data-res]').forEach(function (b) { b.onclick = function () { XL.showPage('pageResult'); XL.showResult(b.dataset.res); }; });
     XL.showPage('pageList');
